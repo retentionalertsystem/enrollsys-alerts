@@ -82,3 +82,5 @@ async function generateAlerts() {
 }
 
 generateAlerts(); // run once (good for GitHub Actions)
+
+setInterval(generateAlerts, POLL_INTERVAL);
