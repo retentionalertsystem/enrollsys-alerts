@@ -17,25 +17,28 @@ async function generateAlerts() {
     console.log("Starting alert generation...");
 
     // Fetch failed grades
-   const gradesRes = await fetch(`${process.env.ENROLLSYS_API}/failed-grades`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": process.env.ENROLLSYS_API_KEY
-      }
-    });
-    
+    const gradesRes = await fetch(
+      `${process.env.ENROLLSYS_API}/failed-grades`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": process.env.ENROLLSYS_API_KEY,
+        },
+      },
+    );
+
     console.log("Status:", gradesRes.status);
-    
+
     const text = await gradesRes.text();
     console.log("Response:", text);
-    
-   const gradesData = JSON.parse(text);
 
-    // Only officially enrolled students
-    const enrolled = gradesData.filter(
-      (g) => g.student_status === "Officially Enrolled"
+    const failedGrades = JSON.parse(text);
+
+    const enrolled = failedGrades.filter(
+      (g) => g.student_status === "Officially Enrolled",
     );
+
     console.log(`Filtered to ${enrolled.length} officially enrolled`);
 
     // Get existing active alerts
