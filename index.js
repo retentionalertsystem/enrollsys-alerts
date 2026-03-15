@@ -1,112 +1,96 @@
+// index.js
 import fetch from "node-fetch";
 import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-// Supabase client
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
-
-// Polling interval
-const POLL_INTERVAL = parseInt(process.env.POLL_INTERVAL || "30000"); // 30s default
 
 async function generateAlerts() {
   try {
-    console.log("=======================================");
-    console.log("Alert generation started at:", new Date().toISOString());
+    console.log("Starting alert generation...");
 
-    // 1️⃣ Fetch failed grades from EnrollSys
-    const gradesRes = await fetch(`${process.env.ENROLLSYS_API}/failed-grades`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": process.env.ENROLLSYS_API_KEY,
-      },
-    });
+    // Fetch failed grades
+ const gradesRes = await fetch(`${process.env.ENROLLSYS_API}/failed-grades`, {
+ console.log("Workflow run at:", new Date().toISOString());
 
-    console.log("API Status:", gradesRes.status);
+const gradesRes = await fetch(`${process.env.ENROLLSYS_API}/failed-grades`, {
+  method: "GET",
+  headers: {
+    "Content-Type": "application/json",
+    "x-api-key": process.env.ENROLLSYS_API_KEY
+  }
+});
 
-    const text = await gradesRes.text();
-    console.log("API Response text length:", text.length);
+console.log("Status:", gradesRes.status);
+console.log("API Status:", gradesRes.status);
 
-    const gradesData = JSON.parse(text);
-    const failedGrades = gradesData.data || [];
+const text = await gradesRes.text();
+console.log("Response:", text);
+console.log("API Response text length:", text.length);
 
-    console.log("Total failed grades fetched:", failedGrades.length);
+const gradesData = JSON.parse(text);
+const failedGrades = gradesData.data || [];
 
-    if (failedGrades.length === 0) {
-      console.log("No failed grades to process. Exiting.");
-      return;
-    }
+console.log("Total failed grades:", failedGrades.length);
+console.log("Total failed grades fetched:", failedGrades.length);
 
-    // 2️⃣ Filter ONLY officially enrolled students
-    const enrolledFailedGrades = failedGrades.filter(
-      (g) => g.student_status === "Officially Enrolled"
+    // Only officially enrolled students
+    const enrolled = failedGrades.filter(
+      (g) => g.student_status === "Officially Enrolled",
     );
-    console.log("Officially enrolled failed grades:", enrolledFailedGrades.length);
 
-    // 3️⃣ Get existing active alerts
-    const { data: existingAlerts, error: existingError } = await supabase
+    console.log(`Filtered to ${enrolled.length} officially enrolled`);
+
+    // Get existing active alerts
+    const { data: existingAlerts } = await supabase
       .from("alerts")
       .select("student_number, subject_code")
       .eq("status", "Active");
 
-    if (existingError) throw existingError;
-
     const existingMap = new Set(
-      (existingAlerts || []).map((a) => `${a.student_number}-${a.subject_code}`)
+      (existingAlerts || []).map(
+        (a) => `${a.student_number}-${a.subject_code}`,
+      ),
     );
 
-    // 4️⃣ Insert alerts safely
-    let createdCount = 0;
-
-    for (const grade of enrolledFailedGrades) {
-      const key = `${grade.student_number}-${grade.subject_code}`;
-
-      if (existingMap.has(key)) {
-        console.log("Alert already exists for:", key);
-        continue;
-      }
-
-      const isINC = grade.grade === "INC";
-      const policyId = isINC
-        ? "742dbfb8-5adb-4f1d-9a7a-4395baac6a58"
-        : "43a56a5c-700e-43b7-ab63-146c402e26fb";
-
-      const { error: insertError } = await supabase.from("alerts").insert({
-        policy_id: policyId,
-        student_id: grade.student_id,
-        student_number: grade.student_number,
-        subject_code: grade.subject_code,
-        risk: isINC ? "Moderate" : "High",
+    const newAlerts = enrolled
+      .filter((g) => !existingMap.has(`${g.student_number}-${g.subject_code}`))
+      .map((g) => ({
+        policy_id:
+          g.grade === "INC"
+            ? "742dbfb8-5adb-4f1d-9a7a-4395baac6a58"
+            : "43a56a5c-700e-43b7-ab63-146c402e26fb",
+        student_id: g.student_id,
+        student_number: g.student_number,
+        subject_code: g.subject_code,
+        risk: g.grade === "INC" ? "Moderate" : "High",
         status: "Active",
         reason: "Failed grade",
-        description: `Student received ${grade.grade} in ${grade.subject_name}`,
+        description: `Student received ${g.grade} in ${g.subject_name}`,
         remarks: "Auto generated from failed grades",
-      });
+      }));
 
-      if (insertError) {
-        console.error("Insert failed for", key, insertError);
-        continue;
-      }
-
-      console.log("Inserted alert for:", key);
-      createdCount++;
+    if (!newAlerts.length) {
+      console.log("No new alerts to insert");
+      return;
     }
 
-    console.log(`Alert generation finished. ${createdCount} alert(s) created.`);
-    console.log("=======================================");
+    // Insert batch
+    const { error } = await supabase.from("alerts").insert(newAlerts);
+    if (error) throw error;
 
-  } catch (error) {
-    console.error("Alert generation failed:", error);
+    console.log(`Inserted ${newAlerts.length} new alert(s)`);
+  } catch (err) {
+    console.error("Alert generation failed:", err);
   }
 }
 
-// Initial run
-generateAlerts();
+generateAlerts(); // run once (good for GitHub Actions)
 
 // Polling every interval
 setInterval(generateAlerts, POLL_INTERVAL);
