@@ -10,6 +10,8 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
 
+const POLL_INTERVAL = parseInt(process.env.POLL_INTERVAL || "30000");
+
 async function generateAlerts() {
 console.log("API URL:", process.env.ENROLLSYS_API);
 console.log("API Key:", process.env.ENROLLSYS_API_KEY?.slice(0, 5) + "..."); // partial for safety
@@ -88,4 +90,4 @@ console.log("API Key:", process.env.ENROLLSYS_API_KEY?.slice(0, 5) + "..."); // 
 
 generateAlerts(); // run once (good for GitHub Actions)
 
-
+setInterval(generateAlerts, POLL_INTERVAL);
