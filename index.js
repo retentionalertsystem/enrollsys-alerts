@@ -11,6 +11,9 @@ const supabase = createClient(
 );
 
 async function generateAlerts() {
+console.log("API URL:", process.env.ENROLLSYS_API);
+console.log("API Key:", process.env.ENROLLSYS_API_KEY?.slice(0, 5) + "..."); // partial for safety
+  
   try {
     console.log("Starting alert generation...");
 
