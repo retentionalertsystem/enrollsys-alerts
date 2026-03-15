@@ -30,13 +30,12 @@ async function generateAlerts() {
     const text = await gradesRes.text();
     console.log("Response:", text);
     
-    const gradesData = JSON.parse(text);
+   const gradesData = JSON.parse(text);
 
     // Only officially enrolled students
-    const enrolled = failedGrades.filter(
-      (g) => g.student_status === "Officially Enrolled",
+    const enrolled = gradesData.filter(
+      (g) => g.student_status === "Officially Enrolled"
     );
-
     console.log(`Filtered to ${enrolled.length} officially enrolled`);
 
     // Get existing active alerts
