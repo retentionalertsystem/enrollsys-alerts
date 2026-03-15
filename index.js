@@ -10,31 +10,23 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
 
-const POLL_INTERVAL = parseInt(process.env.POLL_INTERVAL || "30000");
-
 async function generateAlerts() {
   try {
     console.log("Starting alert generation...");
 
     // Fetch failed grades
-    const gradesRes = await fetch(
-      `${process.env.ENROLLSYS_API}/failed-grades`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": process.env.ENROLLSYS_API_KEY,
-        },
-      },
-    );
+    const res = await fetch(`${process.env.ENROLLSYS_API}/failed-grades`, {
+      headers: { Authorization: `Bearer ${process.env.ENROLLSYS_API_KEY}` },
+    });
+    if (!res.ok) throw new Error("Failed to fetch failed grades");
+    const data = await res.json();
+    const failedGrades = data.data || [];
 
-    console.log("Status:", gradesRes.status);
+    console.log(`Retrieved ${failedGrades.length} failed grades`);
 
-    const text = await gradesRes.text();
-    console.log("Response:", text);
+    if (!failedGrades.length) return;
 
-    const failedGrades = JSON.parse(text);
-
+    // Only officially enrolled students
     const enrolled = failedGrades.filter(
       (g) => g.student_status === "Officially Enrolled",
     );
@@ -87,4 +79,4 @@ async function generateAlerts() {
 
 generateAlerts(); // run once (good for GitHub Actions)
 
-setInterval(generateAlerts, POLL_INTERVAL);
+
