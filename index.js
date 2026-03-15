@@ -18,17 +18,22 @@ console.log("API Key:", process.env.ENROLLSYS_API_KEY?.slice(0, 5) + "..."); // 
     console.log("Starting alert generation...");
 
     // Fetch failed grades
-   const res = await fetch(`${process.env.ENROLLSYS_API}/failed-grades`, {
-  headers: { Authorization: `Bearer ${process.env.ENROLLSYS_API_KEY}` },
-});
-
-console.log("Fetch status:", res.status, res.statusText);
-
-if (!res.ok) {
-  const text = await res.text();
-  console.error("Response body:", text);
-  throw new Error("Failed to fetch failed grades");
-}
+   const gradesRes = await fetch(`${process.env.ENROLLSYS_API}/failed-grades`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": process.env.ENROLLSYS_API_KEY
+      }
+    });
+    
+    console.log("API Status:", gradesRes.status);
+    
+    const text = await gradesRes.text();
+    console.log("API Response text length:", text.length);
+    
+    const gradesData = JSON.parse(text);
+    const failedGrades = gradesData.data || [];
+    console.log("Total failed grades fetched:", failedGrades.length);
 
     // Only officially enrolled students
     const enrolled = failedGrades.filter(
