@@ -15,16 +15,20 @@ async function generateAlerts() {
     console.log("Starting alert generation...");
 
     // Fetch failed grades
-    const res = await fetch(`${process.env.ENROLLSYS_API}/failed-grades`, {
-      headers: { Authorization: `Bearer ${process.env.ENROLLSYS_API_KEY}` },
-    });
-    if (!res.ok) throw new Error("Failed to fetch failed grades");
-    const data = await res.json();
-    const failedGrades = data.data || [];
+  const gradesRes = await fetch(`${process.env.ENROLLSYS_API}/failed-grades`, {
+  method: "GET",
+  headers: {
+    "Content-Type": "application/json",
+    "x-api-key": process.env.ENROLLSYS_API_KEY
+  }
+});
 
-    console.log(`Retrieved ${failedGrades.length} failed grades`);
+console.log("Status:", gradesRes.status);
 
-    if (!failedGrades.length) return;
+const text = await gradesRes.text();
+console.log("Response:", text);
+
+const gradesData = JSON.parse(text);
 
     // Only officially enrolled students
     const enrolled = failedGrades.filter(
