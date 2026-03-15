@@ -15,7 +15,7 @@ async function generateAlerts() {
     console.log("Starting alert generation...");
 
     // Fetch failed grades
-  const gradesRes = await fetch(`${process.env.ENROLLSYS_API}/failed-grades`, {
+ const gradesRes = await fetch(`${process.env.ENROLLSYS_API}/failed-grades`, {
   method: "GET",
   headers: {
     "Content-Type": "application/json",
@@ -29,6 +29,9 @@ const text = await gradesRes.text();
 console.log("Response:", text);
 
 const gradesData = JSON.parse(text);
+const failedGrades = gradesData.data || [];
+
+console.log("Total failed grades:", failedGrades.length);
 
     // Only officially enrolled students
     const enrolled = failedGrades.filter(
