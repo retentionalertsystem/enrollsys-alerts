@@ -25,7 +25,7 @@ async function sendAlertEmail(alert) {
       student_name: alert.student_name,
       student_email: "bingbongporras@gmail.com", // fallback
       // student_email: alert.student_email || "bingbongporras@gmail.com", // fallback
-      message: `This is to inform you that a retention alert has been created for ${alert.student_name}.
+      message: `This is to inform you that a retention alert has been created.
 
         Alert Details:
         - Subject Code: ${alert.subject_code}
