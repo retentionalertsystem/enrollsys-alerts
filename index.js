@@ -24,22 +24,23 @@ async function sendAlertEmail(alert) {
       student_email: "bingbongporras@gmail.com",
       message: `This is to inform you that a retention alert has been created.
 
-Alert Details:
-- Subject Code: ${alert.subject_code}
-- Grade: ${alert.grade || "N/A"}
-- Risk Level: ${alert.risk || "N/A"}
-- Reason: ${alert.reason || "Failed grade"}
-- Description: ${alert.description || "N/A"}
-- Created At: ${alert.created_at ? new Date(alert.created_at).toLocaleString() : "N/A"}
-
-Please follow up according to the retention policy.`
+        Alert Details:
+        - Subject Code: ${alert.subject_code}
+        - Grade: ${alert.grade || "N/A"}
+        - Risk Level: ${alert.risk || "N/A"}
+        - Reason: ${alert.reason || "Failed grade"}
+        - Description: ${alert.description || "N/A"}
+        - Created At: ${alert.created_at ? new Date(alert.created_at).toLocaleString() : "N/A"}
+        
+        Please follow up according to the retention policy.`
     };
 
     const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${process.env.EMAILJS_PRIVATE_KEY}` // ✅ add this
+    },
       body: JSON.stringify({
         service_id: process.env.EMAILJS_SERVICE_ID,
         template_id: process.env.EMAILJS_TEMPLATE_ID,
