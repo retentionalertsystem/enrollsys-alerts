@@ -40,11 +40,12 @@ async function sendAlertEmail(alert) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.EMAILJS_PRIVATE_KEY}` // Private Key here
+        // "Authorization": `Bearer ${process.env.EMAILJS_PRIVATE_KEY}` // Private Key here
       },
       body: JSON.stringify({
         service_id: process.env.EMAILJS_SERVICE_ID,
         template_id: process.env.EMAILJS_TEMPLATE_ID,
+        user_id: process.env.EMAILJS_PUBLIC_KEY,
         template_params: templateParams
       })
     });
