@@ -138,4 +138,4 @@ console.log("API Key:", process.env.ENROLLSYS_API_KEY?.slice(0, 5) + "..."); // 
 
 generateAlerts(); // run once (good for GitHub Actions)
 
-setInterval(generateAlerts, POLL_INTERVAL);
+// setInterval(generateAlerts, POLL_INTERVAL);
