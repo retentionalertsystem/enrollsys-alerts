@@ -20,34 +20,43 @@ const POLL_INTERVAL = parseInt(process.env.POLL_INTERVAL || "30000");
 
 async function sendAlertEmail(alert) {
   try {
-    // Use the data from your enrolled API fetch
     const templateParams = {
-      student_name: alert.student_name,
-      student_email: "bingbongporras@gmail.com", // fallback
-      // student_email: alert.student_email || "bingbongporras@gmail.com", // fallback
+      student_name: alert.student_name || "Student",
+      student_email: "bingbongporras@gmail.com",
       message: `This is to inform you that a retention alert has been created.
 
-        Alert Details:
-        - Subject Code: ${alert.subject_code}
-        - Grade: ${alert.grade || "N/A"}
-        - Risk Level: ${alert.risk || "N/A"}
-        - Reason: ${alert.reason || "Failed grade"}
-        - Description: ${alert.description || "N/A"}
-        - Created At: ${alert.created_at ? new Date(alert.created_at).toLocaleString() : "N/A"}
-        
-        Please follow up according to the retention policy.`
+Alert Details:
+- Subject Code: ${alert.subject_code}
+- Grade: ${alert.grade || "N/A"}
+- Risk Level: ${alert.risk || "N/A"}
+- Reason: ${alert.reason || "Failed grade"}
+- Description: ${alert.description || "N/A"}
+- Created At: ${alert.created_at ? new Date(alert.created_at).toLocaleString() : "N/A"}
+
+Please follow up according to the retention policy.`
     };
 
-    console.log("Sending email for:", alert.student_number, templateParams);
+    const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        service_id: process.env.EMAILJS_SERVICE_ID,
+        template_id: process.env.EMAILJS_TEMPLATE_ID,
+        user_id: process.env.EMAILJS_PUBLIC_KEY,
+        template_params: templateParams
+      })
+    });
 
-    const response = await emailjs.send(
-      process.env.EMAILJS_SERVICE_ID,
-      process.env.EMAILJS_TEMPLATE_ID,
-      templateParams,
-      process.env.EMAILJS_PUBLIC_KEY
-    );
+    const text = await res.text();
 
-    console.log("Email sent successfully:", response.status);
+    if (res.ok) {
+      console.log("Email sent successfully:", text);
+    } else {
+      console.error("Email failed:", text);
+    }
+
   } catch (err) {
     console.error("Email sending failed:", err);
   }
