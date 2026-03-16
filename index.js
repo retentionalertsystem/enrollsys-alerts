@@ -2,7 +2,7 @@
 import fetch from "node-fetch";
 import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
-import emailjs from "@emailjs/nodejs";
+import emailjs from "@emailjs/browser";
 
 // Add this helper function for delay
 function sleep(ms) {
