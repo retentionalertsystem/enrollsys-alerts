@@ -119,13 +119,17 @@ console.log("API Key:", process.env.ENROLLSYS_API_KEY?.slice(0, 5) + "..."); // 
       return;
     }
 
-   // Insert batch and return inserted rows
-    const { data: insertedAlerts, error } = await supabase
+     // Insert batch and return inserted rows
+    let insertedAlerts = [];
+
+    const { data, error } = await supabase
       .from("alerts")
       .insert(newAlerts)
-      .select(); // returns inserted rows
+      .select();
     
     if (error) throw error;
+    
+    insertedAlerts = data || [];
     
     console.log(`Inserted ${insertedAlerts.length} new alert(s)`);
 
