@@ -18,11 +18,11 @@ const supabase = createClient(
 
 const POLL_INTERVAL = parseInt(process.env.POLL_INTERVAL || "300000");
 
-async function sendAlertEmail(alert, newAlertStudentEmail) {
+async function sendAlertEmail(alert) {
   try {
     const templateParams = {
       student_name: alert.student_name || "Student",
-      student_email: newAlertStudentEmail,
+      // student_email: ,
       message: `This is to inform you that a retention alert has been created.
 
         Alert Details:
@@ -144,12 +144,11 @@ console.log("Private Key loaded?", !!process.env.EMAILJS_PRIVATE_KEY, "Public Ke
     insertedAlerts = data || [];
     
     console.log(`Inserted ${insertedAlerts.length} new alert(s)`);
-    console.log(`Inserted ${newAlerts.student_email} new alert(s)`);
     
     // Send emails for each newly inserted alert with interval
     const EMAIL_INTERVAL = 5000; // 5 seconds between emails
     for (const alert of insertedAlerts) {
-      await sendAlertEmail(alert, newAlertStudentEmail);
+      await sendAlertEmail(alert);
       await sleep(EMAIL_INTERVAL);
     }
   } catch (err) {
