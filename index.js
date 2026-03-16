@@ -140,7 +140,7 @@ console.log("Private Key loaded?", !!process.env.EMAILJS_PRIVATE_KEY, "Public Ke
     
     if (error) throw error;
     
-    insertedAlerts = data || [];
+    insertedAlerts = newAlerts || [];
     
     console.log(`Inserted ${insertedAlerts.length} new alert(s)`);
 
