@@ -146,10 +146,24 @@ console.log("Private Key loaded?", !!process.env.EMAILJS_PRIVATE_KEY, "Public Ke
     console.log(`Inserted ${insertedAlerts.length} new alert(s)`);
     console.log(`Inserted ${insertedAlerts} new alert(s)`);
     
-    // Send emails for each newly inserted alert with interval
+    // Send emails for each newly inserted alert
     const EMAIL_INTERVAL = 5000; // 5 seconds between emails
     for (const alert of insertedAlerts) {
-      await sendAlertEmail(alert);
+      // Find the original API data for this student & subject
+      const source = enrolled.find(
+        (g) => g.student_number === alert.student_number && g.subject_code === alert.subject_code
+      );
+    
+      if (!source) continue; // safety check
+    
+      // Attach email & name to alert for sending
+      const alertWithEmail = {
+        ...alert,
+        student_email: source.email,      // or source.student_email if that's the field
+        student_name: source.student_name // optional
+      };
+    
+      await sendAlertEmail(alertWithEmail);
       await sleep(EMAIL_INTERVAL);
     }
   } catch (err) {
