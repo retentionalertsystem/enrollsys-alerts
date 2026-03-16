@@ -9,10 +9,7 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-console.log(
-  "Private Key loaded?", !!process.env.EMAILJS_PRIVATE_KEY,
-  "Public Key loaded?", !!process.env.EMAILJS_PUBLIC_KEY
-);
+
 
 dotenv.config();
 
@@ -71,6 +68,10 @@ async function sendAlertEmail(alert) {
 async function generateAlerts() {
 console.log("API URL:", process.env.ENROLLSYS_API);
 console.log("API Key:", process.env.ENROLLSYS_API_KEY?.slice(0, 5) + "..."); // partial for safety
+console.log(
+  "Private Key loaded?", !!process.env.EMAILJS_PRIVATE_KEY,
+  "Public Key loaded?", !!process.env.EMAILJS_PUBLIC_KEY
+); 
   
   try {
     console.log("Starting alert generation...");
