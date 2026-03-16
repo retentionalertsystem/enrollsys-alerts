@@ -2,6 +2,12 @@
 import fetch from "node-fetch";
 import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
+import emailjs from "@emailjs/browser";
+
+// Add this helper function for delay
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 dotenv.config();
 
@@ -11,6 +17,32 @@ const supabase = createClient(
 );
 
 const POLL_INTERVAL = parseInt(process.env.POLL_INTERVAL || "30000");
+
+async function sendAlertEmail(alert) {
+  try {
+    const templateParams = {
+      student_name: alert.student_number,
+      policy: alert.policy_id,
+      subject_code: alert.subject_code,
+      reason: alert.reason,
+      instructor_name: "Instructor Name",       // replace or fetch dynamically
+      instructor_email: "instructor@example.com" // replace or fetch dynamically
+    };
+
+    console.log("Sending email for:", alert.student_number, templateParams);
+
+    const response = await emailjs.send(
+      process.env.EMAILJS_SERVICE_ID,
+      process.env.EMAILJS_TEMPLATE_ID,
+      templateParams,
+      process.env.EMAILJS_PUBLIC_KEY
+    );
+
+    console.log("Email sent successfully:", response.status);
+  } catch (err) {
+    console.error("Email sending failed:", err);
+  }
+}
 
 async function generateAlerts() {
 console.log("API URL:", process.env.ENROLLSYS_API);
@@ -83,6 +115,13 @@ console.log("API Key:", process.env.ENROLLSYS_API_KEY?.slice(0, 5) + "..."); // 
     if (error) throw error;
 
     console.log(`Inserted ${newAlerts.length} new alert(s)`);
+
+    // Send emails for each newly inserted alert with interval
+    const EMAIL_INTERVAL = 5000; // 5 seconds between emails
+    for (const alert of insertedAlerts) {
+      await sendAlertEmail(alert);
+      await sleep(EMAIL_INTERVAL);
+    }
   } catch (err) {
     console.error("Alert generation failed:", err);
   }
