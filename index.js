@@ -22,16 +22,16 @@ async function sendAlertEmail(alert) {
   try {
     const templateParams = {
       student_name: alert.student_name || "Student",
-      student_email: "bingbongporras@gmail.com",
+      student_email: alert.student_email,
       message: `This is to inform you that a retention alert has been created.
 
         Alert Details:
-        - Subject Code: ${alert.subject_code}
-        - Grade: ${alert.grade || "N/A"}
-        - Risk Level: ${alert.risk || "N/A"}
-        - Reason: ${alert.reason || "Failed grade"}
-        - Description: ${alert.description || "N/A"}
-        - Created At: ${alert.created_at ? new Date(alert.created_at).toLocaleString() : "N/A"}
+        
+        Subject Code: ${alert.subject_code}
+        Risk Level: ${alert.risk || "N/A"}
+        Reason: ${alert.reason || "Failed grade"}
+        Description: ${alert.description || "N/A"}
+        Created At: ${alert.created_at ? new Date(alert.created_at).toLocaleString() : "N/A"}
         
         Please follow up according to the retention policy.`
     };
