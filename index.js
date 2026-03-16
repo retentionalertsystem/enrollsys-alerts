@@ -20,13 +20,22 @@ const POLL_INTERVAL = parseInt(process.env.POLL_INTERVAL || "30000");
 
 async function sendAlertEmail(alert) {
   try {
+    // Use the data from your enrolled API fetch
     const templateParams = {
-      student_name: alert.student_number,
-      policy: alert.policy_id,
-      subject_code: alert.subject_code,
-      reason: alert.reason,
-      instructor_name: "Instructor Name",       // replace or fetch dynamically
-      instructor_email: "instructor@example.com" // replace or fetch dynamically
+      student_name: alert.student_name,
+      student_email: "bingbongporras@gmail.com", // fallback
+      // student_email: alert.student_email || "bingbongporras@gmail.com", // fallback
+      message: `This is to inform you that a retention alert has been created for ${alert.student_name}.
+
+        Alert Details:
+        - Subject Code: ${alert.subject_code}
+        - Grade: ${alert.grade || "N/A"}
+        - Risk Level: ${alert.risk || "N/A"}
+        - Reason: ${alert.reason || "Failed grade"}
+        - Description: ${alert.description || "N/A"}
+        - Created At: ${alert.created_at ? new Date(alert.created_at).toLocaleString() : "N/A"}
+        
+        Please follow up according to the retention policy.`
     };
 
     console.log("Sending email for:", alert.student_number, templateParams);
