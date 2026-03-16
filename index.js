@@ -131,6 +131,8 @@ console.log("Private Key loaded?", !!process.env.EMAILJS_PRIVATE_KEY, "Public Ke
       return;
     }
 
+    console.log("New Alerts with Emails:", newAlerts);
+
     const alertsForInsert = newAlerts.map(({ student_email, ...rest }) => rest);
 
      // Insert batch and return inserted rows
