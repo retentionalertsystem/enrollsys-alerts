@@ -146,7 +146,7 @@ console.log("Private Key loaded?", !!process.env.EMAILJS_PRIVATE_KEY, "Public Ke
     
     // Send emails for each newly inserted alert with interval
     const EMAIL_INTERVAL = 5000; // 5 seconds between emails
-    for (const alert of newAlerts) {
+    for (const alert of enrolled) {
       await sendAlertEmail(alert);
       await sleep(EMAIL_INTERVAL);
     }
