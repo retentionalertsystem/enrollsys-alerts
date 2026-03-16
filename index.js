@@ -36,15 +36,14 @@ async function sendAlertEmail(alert) {
     };
 
     const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${process.env.EMAILJS_PRIVATE_KEY}` // ✅ add this
-    },
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.EMAILJS_PRIVATE_KEY}` // use your private key
+      },
       body: JSON.stringify({
         service_id: process.env.EMAILJS_SERVICE_ID,
         template_id: process.env.EMAILJS_TEMPLATE_ID,
-        user_id: process.env.EMAILJS_PUBLIC_KEY,
         template_params: templateParams
       })
     });
