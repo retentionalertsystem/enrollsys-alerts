@@ -2,6 +2,7 @@
 import fetch from "node-fetch";
 import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
+dotenv.config(); // must be called before accessing process.env
 
 // Add this helper function for delay
 function sleep(ms) {
