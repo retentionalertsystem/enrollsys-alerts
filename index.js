@@ -9,6 +9,11 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+console.log(
+  "Private Key loaded?", !!process.env.EMAILJS_PRIVATE_KEY,
+  "Public Key loaded?", !!process.env.EMAILJS_PUBLIC_KEY
+);
+
 dotenv.config();
 
 const supabase = createClient(
