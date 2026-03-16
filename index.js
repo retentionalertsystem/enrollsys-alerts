@@ -64,37 +64,23 @@ async function sendAlertEmail(alert) {
 }
 
 async function generateAlerts() {
-console.log("API URL:", process.env.ENROLLSYS_API);
-console.log("API Key:", process.env.ENROLLSYS_API_KEY?.slice(0, 5) + "..."); // partial for safety
-console.log("Private Key loaded?", !!process.env.EMAILJS_PRIVATE_KEY, "Public Key loaded?", !!process.env.EMAILJS_PUBLIC_KEY); 
-  
-  try {
-    console.log("Starting alert generation...");
+  console.log("Starting alert generation...");
 
+  try {
     // Fetch failed grades
-   const gradesRes = await fetch(`${process.env.ENROLLSYS_API}/failed-grades`, {
+    const gradesRes = await fetch(`${process.env.ENROLLSYS_API}/failed-grades`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
         "x-api-key": process.env.ENROLLSYS_API_KEY
       }
     });
-    
-    console.log("API Status:", gradesRes.status);
-    
-    const text = await gradesRes.text();
-    console.log("API Response text length:", text.length);
-    
-    const gradesData = JSON.parse(text);
+
+    const gradesData = await gradesRes.json();
     const failedGrades = gradesData.data || [];
-    console.log("Total failed grades fetched:", failedGrades.length);
 
     // Only officially enrolled students
-    const enrolled = failedGrades.filter(
-      (g) => g.student_status === "Officially Enrolled",
-    );
-
-    console.log(`Filtered to ${enrolled.length} officially enrolled`);
+    const enrolled = failedGrades.filter(g => g.student_status === "Officially Enrolled");
 
     // Get existing active alerts
     const { data: existingAlerts } = await supabase
@@ -102,70 +88,61 @@ console.log("Private Key loaded?", !!process.env.EMAILJS_PRIVATE_KEY, "Public Ke
       .select("student_number, subject_code")
       .eq("status", "Active");
 
-    const existingMap = new Set(
-      (existingAlerts || []).map(
-        (a) => `${a.student_number}-${a.subject_code}`,
-      ),
-    );
+    const existingMap = new Set((existingAlerts || []).map(a => `${a.student_number}-${a.subject_code}`));
 
+    // Prepare new alerts
     const newAlerts = enrolled
-      .filter((g) => !existingMap.has(`${g.student_number}-${g.subject_code}`))
-      .map((g) => ({
-        policy_id:
-          g.grade === "INC"
-            ? "742dbfb8-5adb-4f1d-9a7a-4395baac6a58"
-            : "43a56a5c-700e-43b7-ab63-146c402e26fb",
+      .filter(g => !existingMap.has(`${g.student_number}-${g.subject_code}`))
+      .map(g => ({
+        policy_id: g.grade === "INC"
+          ? "742dbfb8-5adb-4f1d-9a7a-4395baac6a58"
+          : "43a56a5c-700e-43b7-ab63-146c402e26fb",
         student_id: g.student_id,
         student_number: g.student_number,
-        student_email: g.email,   
         subject_code: g.subject_code,
         risk: g.grade === "INC" ? "Moderate" : "High",
         status: "Active",
         reason: "Failed grade",
         description: `Student received ${g.grade} in ${g.subject_name}`,
         remarks: "Auto generated from failed grades",
+        created_at: new Date().toISOString()
       }));
 
     if (!newAlerts.length) {
-      console.log("No new alerts to insert");
+      console.log("No new alerts to process");
       return;
     }
 
-     // Insert batch and return inserted rows
-    let insertedAlerts = [];
+    // Send email first, one by one
+    const EMAIL_INTERVAL = 5000; // 5 seconds
+    const alertsToInsert = [];
 
-    const { data, error } = await supabase
-      .from("alerts")
-      .insert(newAlerts)
-      .select();
-    
-    if (error) throw error;
-    
-    insertedAlerts = data || [];
-    
-    console.log(`Inserted ${insertedAlerts.length} new alert(s)`);
-    console.log(`Inserted ${insertedAlerts} new alert(s)`);
-    
-    // Send emails for each newly inserted alert
-    const EMAIL_INTERVAL = 5000; // 5 seconds between emails
-    for (const alert of insertedAlerts) {
-      // Find the original API data for this student & subject
-      const source = enrolled.find(
-        (g) => g.student_number === alert.student_number && g.subject_code === alert.subject_code
-      );
-    
-      if (!source) continue; // safety check
-    
-      // Attach email & name to alert for sending
-      const alertWithEmail = {
-        ...alert,
-        student_email: source.email,      // or source.student_email if that's the field
-        student_name: source.student_name // optional
-      };
-    
-      await sendAlertEmail(alertWithEmail);
+    for (const alert of newAlerts) {
+      try {
+        await sendAlertEmail(alert);
+        console.log(`Email sent for ${alert.student_number} - ${alert.subject_code}`);
+        alertsToInsert.push(alert); // only insert if email succeeds
+      } catch (err) {
+        console.error(`Email failed for ${alert.student_number} - ${alert.subject_code}`, err);
+      }
       await sleep(EMAIL_INTERVAL);
     }
+
+    if (!alertsToInsert.length) {
+      console.log("No alerts to insert after email sending");
+      return;
+    }
+
+    // Insert alerts after emails
+    const { data, error } = await supabase
+      .from("alerts")
+      .insert(alertsToInsert)
+      .select();
+
+    if (error) throw error;
+
+    console.log(`Inserted ${data.length} new alert(s) after sending emails`);
+
   } catch (err) {
     console.error("Alert generation failed:", err);
   }
