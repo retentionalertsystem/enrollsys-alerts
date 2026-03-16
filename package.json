@@ -11,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@emailjs/nodejs": "^4.4.1",
+    "@emailjs/nodejs": "^3.0.0",
     "@supabase/supabase-js": "^2.39.7",
     "dotenv": "^16.4.5",
     "node-fetch": "^3.3.2"
