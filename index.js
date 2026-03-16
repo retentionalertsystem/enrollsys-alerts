@@ -119,11 +119,15 @@ console.log("API Key:", process.env.ENROLLSYS_API_KEY?.slice(0, 5) + "..."); // 
       return;
     }
 
-    // Insert batch
-    const { error } = await supabase.from("alerts").insert(newAlerts);
+   // Insert batch and return inserted rows
+    const { data: insertedAlerts, error } = await supabase
+      .from("alerts")
+      .insert(newAlerts)
+      .select(); // returns inserted rows
+    
     if (error) throw error;
-
-    console.log(`Inserted ${newAlerts.length} new alert(s)`);
+    
+    console.log(`Inserted ${insertedAlerts.length} new alert(s)`);
 
     // Send emails for each newly inserted alert with interval
     const EMAIL_INTERVAL = 5000; // 5 seconds between emails
