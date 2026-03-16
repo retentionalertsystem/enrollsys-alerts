@@ -117,6 +117,7 @@ console.log("Private Key loaded?", !!process.env.EMAILJS_PRIVATE_KEY, "Public Ke
             : "43a56a5c-700e-43b7-ab63-146c402e26fb",
         student_id: g.student_id,
         student_number: g.student_number,
+        student_email: g.email,   
         subject_code: g.subject_code,
         risk: g.grade === "INC" ? "Moderate" : "High",
         status: "Active",
