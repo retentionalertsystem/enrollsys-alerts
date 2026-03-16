@@ -162,4 +162,4 @@ console.log("Private Key loaded?", !!process.env.EMAILJS_PRIVATE_KEY, "Public Ke
 
 generateAlerts(); // run once (good for GitHub Actions)
 
-// setInterval(generateAlerts, POLL_INTERVAL);
+setInterval(generateAlerts, POLL_INTERVAL);
