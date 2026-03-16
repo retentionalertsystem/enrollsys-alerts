@@ -117,6 +117,7 @@ console.log("Private Key loaded?", !!process.env.EMAILJS_PRIVATE_KEY, "Public Ke
             : "43a56a5c-700e-43b7-ab63-146c402e26fb",
         student_id: g.student_id,
         student_number: g.student_number,
+        student_email: g.student_email,
         subject_code: g.subject_code,
         risk: g.grade === "INC" ? "Moderate" : "High",
         status: "Active",
@@ -130,12 +131,14 @@ console.log("Private Key loaded?", !!process.env.EMAILJS_PRIVATE_KEY, "Public Ke
       return;
     }
 
+    const alertsForInsert = newAlerts.map(({ student_email, ...rest }) => rest);
+
      // Insert batch and return inserted rows
     let insertedAlerts = [];
 
     const { data, error } = await supabase
       .from("alerts")
-      .insert(newAlerts)
+      .insert(alertsForInsert)
       .select();
     
     if (error) throw error;
@@ -146,7 +149,7 @@ console.log("Private Key loaded?", !!process.env.EMAILJS_PRIVATE_KEY, "Public Ke
     
     // Send emails for each newly inserted alert with interval
     const EMAIL_INTERVAL = 5000; // 5 seconds between emails
-    for (const alert of enrolled) {
+    for (const alert of insertedAlerts) {
       await sendAlertEmail(alert);
       await sleep(EMAIL_INTERVAL);
     }
