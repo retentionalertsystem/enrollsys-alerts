@@ -15,7 +15,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
 
-const POLL_INTERVAL = parseInt(process.env.POLL_INTERVAL || "30000");
+const POLL_INTERVAL = parseInt(process.env.POLL_INTERVAL || "300000");
 
 async function sendAlertEmail(alert) {
   try {
