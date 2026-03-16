@@ -22,7 +22,7 @@ async function sendAlertEmail(alert, newAlertStudentEmail) {
   try {
     const templateParams = {
       student_name: alert.student_name || "Student",
-      student_email: alert.newAlertStudentEmail,
+      student_email: newAlertStudentEmail,
       message: `This is to inform you that a retention alert has been created.
 
         Alert Details:
