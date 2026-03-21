@@ -99,8 +99,7 @@ console.log("Private Key loaded?", !!process.env.EMAILJS_PRIVATE_KEY, "Public Ke
     // Get existing active alerts
     const { data: existingAlerts } = await supabase
       .from("alerts")
-      .select("student_number, subject_code")
-      .eq("status", "Active");
+      .select("student_number, subject_code");
 
     const existingMap = new Set(
       (existingAlerts || []).map(
