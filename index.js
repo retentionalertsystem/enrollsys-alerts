@@ -96,20 +96,20 @@ console.log("Private Key loaded?", !!process.env.EMAILJS_PRIVATE_KEY, "Public Ke
 
     console.log(`Filtered to ${enrolled.length} officially enrolled`);
 
-    // Get existing active alerts
+    // Get all existing alerts, regardless of status
     const { data: existingAlerts } = await supabase
       .from("alerts")
       .select("student_number, subject_code");
-
+    
     const existingMap = new Set(
       (existingAlerts || []).map(
-        (a) => `${a.student_number}-${a.subject_code}`,
-      ),
+        (a) => `${a.student_number?.trim()}-${a.subject_code?.trim()}`
+      )
     );
-
-     // Prepare new alerts
+    
+    // Prepare new alerts
     const newAlerts = enrolled
-      .filter(g => !existingMap.has(`${g.student_number}-${g.subject_code}`))
+      .filter(g => !existingMap.has(`${g.student_number?.trim()}-${g.subject_code?.trim()}`))
       .map(g => ({
         policy_id: g.grade === "INC"
           ? "742dbfb8-5adb-4f1d-9a7a-4395baac6a58"
