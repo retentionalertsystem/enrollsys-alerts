@@ -146,11 +146,11 @@ console.log("Private Key loaded?", !!process.env.EMAILJS_PRIVATE_KEY, "Public Ke
     console.log(`Inserted ${insertedAlerts.length} new alert(s)`);
     
     // Send emails for each newly inserted alert with interval
-    // const EMAIL_INTERVAL = 5000; // 5 seconds between emails
-    // for (const alert of newAlerts) {
-    //   await sendAlertEmail(alert);
-    //   await sleep(EMAIL_INTERVAL);
-    // }
+     const EMAIL_INTERVAL = 5000; // 5 seconds between emails
+     for (const alert of insertedAlerts) {
+       await sendAlertEmail(alert);
+       await sleep(EMAIL_INTERVAL);
+     }
   } catch (err) {
     console.error("Alert generation failed:", err);
   }
