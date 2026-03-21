@@ -108,16 +108,18 @@ console.log("Private Key loaded?", !!process.env.EMAILJS_PRIVATE_KEY, "Public Ke
       ),
     );
 
+     // Prepare new alerts
     const newAlerts = enrolled
-      .filter((g) => !existingMap.has(`${g.student_number}-${g.subject_code}`))
-      .map((g) => ({
-        policy_id:
-          g.grade === "INC"
-            ? "742dbfb8-5adb-4f1d-9a7a-4395baac6a58"
-            : "43a56a5c-700e-43b7-ab63-146c402e26fb",
+      .filter(g => !existingMap.has(`${g.student_number}-${g.subject_code}`))
+      .map(g => ({
+        policy_id: g.grade === "INC"
+          ? "742dbfb8-5adb-4f1d-9a7a-4395baac6a58"
+          : "43a56a5c-700e-43b7-ab63-146c402e26fb",
         student_id: g.student_id,
         student_number: g.student_number,
+        student_name: g.student_name,
         student_email: g.student_email,
+        curriculum: g.curriculum,
         subject_code: g.subject_code,
         risk: g.grade === "INC" ? "Moderate" : "High",
         status: "Active",
@@ -131,30 +133,24 @@ console.log("Private Key loaded?", !!process.env.EMAILJS_PRIVATE_KEY, "Public Ke
       return;
     }
 
-    console.log("New Alerts with Emails:", newAlerts);
+    console.log(`New alerts to insert: ${newAlerts.length}`);
 
-    const alertsForInsert = newAlerts.map(({ student_email, ...rest }) => rest);
-
-     // Insert batch and return inserted rows
-    let insertedAlerts = [];
-
-    const { data, error } = await supabase
+    // Insert into Supabase and return inserted rows
+    const { data: insertedAlerts, error } = await supabase
       .from("alerts")
-      .insert(alertsForInsert)
+      .insert(newAlerts)
       .select();
-    
+
     if (error) throw error;
-    
-    insertedAlerts = data || [];
-    
+
     console.log(`Inserted ${insertedAlerts.length} new alert(s)`);
     
     // Send emails for each newly inserted alert with interval
-    const EMAIL_INTERVAL = 5000; // 5 seconds between emails
-    for (const alert of newAlerts) {
-      await sendAlertEmail(alert);
-      await sleep(EMAIL_INTERVAL);
-    }
+    // const EMAIL_INTERVAL = 5000; // 5 seconds between emails
+    // for (const alert of newAlerts) {
+    //   await sendAlertEmail(alert);
+    //   await sleep(EMAIL_INTERVAL);
+    // }
   } catch (err) {
     console.error("Alert generation failed:", err);
   }
